@@ -4,16 +4,33 @@
 
 from flask import Flask, request
 from flask_restful import Resource, Api
-from models import Pessoas, Atividades #importando o models pessoas e atividades
+from models import Pessoas, Atividades              #importando o models pessoas e atividades
+from flask_httpauth import HTTPBasicAuth
 
+auth = HTTPBasicAuth()
 app = Flask(__name__)
 api = Api(app)
+
+#Se validar, login e senha...autenticar
+USUARIOS = {
+    'rafael': '1234',                                 #CHAVE -> LOGIN, VALOR -> A SENHA
+    'galleani': '321',
+    'felipe': '1234'
+}
+
+@auth.verify_password                       #decorador não é função....não precisa dos parenteses
+#criando método de verificação
+def verificacao(login, senha):
+    if not (login, senha):                  #se não for informado login e nem a senha
+        return False
+    return USUARIOS.get(login) == senha
 
 #criando minha primeira classe, minha modelagem -> pessoas e atividades
 #criando minha api rest de pessoas
 class Pessoa(Resource):
-    def get(self, nome):      #criando o método get, nome como parametro
-        pessoa = Pessoas.query.filter_by(nome=nome).first() #first para poder pegar o objeto
+    @auth.login_required                                         #informando qual método precisa passar pela verificação de denha, para acessar esse método é obrigado estar logado
+    def get(self, nome):                                         #criando o método get, nome como parametro
+        pessoa = Pessoas.query.filter_by(nome=nome).first()      #first para poder pegar o objeto
         #tratando erro, com try e except
         try:
             response = {
@@ -55,6 +72,7 @@ class Pessoa(Resource):
 
 #Criando uma classe para listar tudo e inserir pessoas
 class ListaPessoas(Resource):
+    @auth.login_required
     def get(self):
         pessoas = Pessoas.query.all()
         response = [{'id': i.id, 'nome': i.nome, 'idade': i.idade} for i in pessoas] #uma lista de dicionário antes era uma lista de objetos

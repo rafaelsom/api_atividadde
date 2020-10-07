@@ -13,7 +13,7 @@ db_session = scoped_session(sessionmaker(autocommit=False,
 Base = declarative_base()
 Base.query = db_session.query_property() #trecho necesário para criação do banco de dados, para fazer alterações e consultas também
 
-#criando as tabelas... depois de criar o banco de dados, tabelas são classes
+#criando as tabelas... depois de criar o banco de dados... tabelas são classes
 
 class Pessoas(Base):                        #nome da classe pode ser diferente do nome da tabela
     __tablename__ = 'pessoas'                #nome da tabela
@@ -48,6 +48,23 @@ class Atividades(Base):
         db_session.commit()
 
     def delete(self):
+        db_session.delete(self)
+        db_session.commit()
+
+class Usuarios(Base):
+    __tablename__ = 'Usuarios'
+    id = Column(Integer, primary_key=True)          #id nossa primary key, Intereger, inteiro
+    login = Column(String(20), unique=True)         #do tipo Sting e vai ser único -> unique=True -> não aceitar usuario com o mesmo nome
+    senha = Column(String(20))
+
+    def __repr__(self):       #criando a UDF, representação
+        return '<Usuario {}>'.format(self.login)
+
+    def save(self):            #criando método save também
+        db_session.add(self)
+        db_session.commit()
+
+    def delete(self):           #criando método delete
         db_session.delete(self)
         db_session.commit()
 
